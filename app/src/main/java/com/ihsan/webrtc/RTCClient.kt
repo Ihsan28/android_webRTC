@@ -19,9 +19,7 @@ import org.webrtc.SdpObserver
 import org.webrtc.SessionDescription
 import org.webrtc.SurfaceTextureHelper
 import org.webrtc.SurfaceViewRenderer
-import org.webrtc.VideoCapturer
 import org.webrtc.VideoTrack
-import java.lang.Exception
 
 class RTCClient(
     context: Application,
@@ -29,15 +27,14 @@ class RTCClient(
 ) {
     companion object {
         private const val LOCAL_TRACK_ID = "local_track"
-        private const val LOCAL_STREAM_ID = "local_track"
     }
 
     private val rootEglBase: EglBase = EglBase.create()
-    private var localAudioTrack : AudioTrack? = null
-    private var localVideoTrack : VideoTrack? = null
+    private var localAudioTrack: AudioTrack? = null
+    private var localVideoTrack: VideoTrack? = null
     val TAG = "RTCClient"
 
-    var remoteSessionDescription : SessionDescription? = null
+    var remoteSessionDescription: SessionDescription? = null
 
     val db = Firebase.firestore
 
@@ -53,7 +50,7 @@ class RTCClient(
     private val peerConnectionFactory by lazy { buildPeerConnectionFactory() }
     private val videoCapturer by lazy { getVideoCapturer(context) }
 
-    private val audioSource by lazy { peerConnectionFactory.createAudioSource(MediaConstraints())}
+    private val audioSource by lazy { peerConnectionFactory.createAudioSource(MediaConstraints()) }
     private val localVideoSource by lazy { peerConnectionFactory.createVideoSource(false) }
     private val peerConnection by lazy { buildPeerConnection(observer) }
 
@@ -69,7 +66,13 @@ class RTCClient(
         return PeerConnectionFactory
             .builder()
             .setVideoDecoderFactory(DefaultVideoDecoderFactory(rootEglBase.eglBaseContext))
-            .setVideoEncoderFactory(DefaultVideoEncoderFactory(rootEglBase.eglBaseContext, true, true))
+            .setVideoEncoderFactory(
+                DefaultVideoEncoderFactory(
+                    rootEglBase.eglBaseContext,
+                    true,
+                    true
+                )
+            )
             .setOptions(PeerConnectionFactory.Options().apply {
                 disableEncryption = true
                 disableNetworkMonitor = true
@@ -77,10 +80,11 @@ class RTCClient(
             .createPeerConnectionFactory()
     }
 
-    private fun buildPeerConnection(observer: PeerConnection.Observer) = peerConnectionFactory.createPeerConnection(
-        iceServer,
-        observer
-    )
+    private fun buildPeerConnection(observer: PeerConnection.Observer) =
+        peerConnectionFactory.createPeerConnection(
+            iceServer,
+            observer
+        )
 
     private fun getVideoCapturer(context: Context) =
         Camera2Enumerator(context).run {
@@ -99,11 +103,25 @@ class RTCClient(
 
     fun startLocalVideoCapture(localVideoOutput: SurfaceViewRenderer) {
         try {
-            val surfaceTextureHelper = SurfaceTextureHelper.create(Thread.currentThread().name, rootEglBase.eglBaseContext)
-            (videoCapturer as VideoCapturer).initialize(surfaceTextureHelper, localVideoOutput.context, localVideoSource.capturerObserver)
-            videoCapturer.startCapture(320, 240, 30)
-            localAudioTrack = peerConnectionFactory.createAudioTrack(LOCAL_TRACK_ID + "_audio", audioSource)
-            localVideoTrack = peerConnectionFactory.createVideoTrack(LOCAL_TRACK_ID, localVideoSource)
+            val surfaceTextureHelper =
+                SurfaceTextureHelper.create(Thread.currentThread().name, rootEglBase.eglBaseContext)
+            /*(videoCapturer as VideoCapturer).initialize(surfaceTextureHelper, localVideoOutput.context, localVideoSource.capturerObserver)
+            videoCapturer.startCapture(320, 240, 30)*/
+            try {
+                videoCapturer.initialize(
+                    surfaceTextureHelper,
+                    localVideoOutput.context,
+                    localVideoSource.capturerObserver
+                )
+                videoCapturer.startCapture(320, 240, 60)
+            } catch (e: Exception) {
+                Log.e(TAG, "Failed to initialize VideoCapturer: $e")
+            }
+
+            localAudioTrack =
+                peerConnectionFactory.createAudioTrack(LOCAL_TRACK_ID + "_audio", audioSource)
+            localVideoTrack =
+                peerConnectionFactory.createVideoTrack(LOCAL_TRACK_ID, localVideoSource)
             localVideoTrack?.addSink(localVideoOutput)
             /*val localStream = peerConnectionFactory.createLocalMediaStream(LOCAL_STREAM_ID)
             Log.d(TAG, "startLocalVideoCapture: $peerConnection")
@@ -111,7 +129,7 @@ class RTCClient(
 
             peerConnection?.addTrack(localAudioTrack)
             peerConnection?.addTrack(localVideoTrack)
-        }catch (e:Exception){
+        } catch (e: Exception) {
             Toast.makeText(RTCActivity(), "$e", Toast.LENGTH_SHORT).show()
             Log.d(TAG, "startLocalVideoCapture: $e")
         }
@@ -210,9 +228,11 @@ class RTCClient(
         }, constraints)
     }
 
-    fun call(sdpObserver: SdpObserver, meetingID: String) = peerConnection?.call(sdpObserver, meetingID)
+    fun call(sdpObserver: SdpObserver, meetingID: String) =
+        peerConnection?.call(sdpObserver, meetingID)
 
-    fun answer(sdpObserver: SdpObserver, meetingID: String) = peerConnection?.answer(sdpObserver, meetingID)
+    fun answer(sdpObserver: SdpObserver, meetingID: String) =
+        peerConnection?.answer(sdpObserver, meetingID)
 
     fun onRemoteSessionReceived(sessionDescription: SessionDescription) {
         remoteSessionDescription = sessionDescription
@@ -244,15 +264,23 @@ class RTCClient(
         db.collection("calls").document(meetingID).collection("candidates")
             .get().addOnSuccessListener {
                 val iceCandidateArray: MutableList<IceCandidate> = mutableListOf()
-                for ( dataSnapshot in it) {
-                    if (dataSnapshot.contains("type") && dataSnapshot["type"]=="offerCandidate") {
-                        iceCandidateArray.add(IceCandidate(
-                            dataSnapshot["sdpMid"].toString(), Math.toIntExact(
-                                dataSnapshot["sdpMLineIndex"] as Long), dataSnapshot["sdp"].toString()))
-                    } else if (dataSnapshot.contains("type") && dataSnapshot["type"]=="answerCandidate") {
-                        iceCandidateArray.add(IceCandidate(
-                            dataSnapshot["sdpMid"].toString(), Math.toIntExact(
-                                dataSnapshot["sdpMLineIndex"] as Long), dataSnapshot["sdp"].toString()))
+                for (dataSnapshot in it) {
+                    if (dataSnapshot.contains("type") && dataSnapshot["type"] == "offerCandidate") {
+                        iceCandidateArray.add(
+                            IceCandidate(
+                                dataSnapshot["sdpMid"].toString(), Math.toIntExact(
+                                    dataSnapshot["sdpMLineIndex"] as Long
+                                ), dataSnapshot["sdp"].toString()
+                            )
+                        )
+                    } else if (dataSnapshot.contains("type") && dataSnapshot["type"] == "answerCandidate") {
+                        iceCandidateArray.add(
+                            IceCandidate(
+                                dataSnapshot["sdpMid"].toString(), Math.toIntExact(
+                                    dataSnapshot["sdpMLineIndex"] as Long
+                                ), dataSnapshot["sdp"].toString()
+                            )
+                        )
                     }
                 }
                 peerConnection?.removeIceCandidates(iceCandidateArray.toTypedArray())
@@ -273,7 +301,7 @@ class RTCClient(
     }
 
     fun enableVideo(videoEnabled: Boolean) {
-        if (localVideoTrack !=null)
+        if (localVideoTrack != null)
             localVideoTrack?.setEnabled(videoEnabled)
     }
 
@@ -281,6 +309,7 @@ class RTCClient(
         if (localAudioTrack != null)
             localAudioTrack?.setEnabled(audioEnabled)
     }
+
     fun switchCamera() {
         videoCapturer.switchCamera(null)
     }
