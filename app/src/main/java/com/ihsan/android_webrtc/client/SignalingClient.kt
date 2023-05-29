@@ -1,9 +1,10 @@
-package com.ihsan.webrtc
+package com.ihsan.android_webrtc.client
 
 import android.util.Log
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 import com.google.gson.Gson
+import com.ihsan.android_webrtc.utils.Constants
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -14,6 +15,7 @@ import kotlinx.coroutines.runBlocking
 import org.json.JSONObject
 import org.webrtc.IceCandidate
 import org.webrtc.SessionDescription
+
 
 @OptIn(ObsoleteCoroutinesApi::class)
 class SignalingClient(

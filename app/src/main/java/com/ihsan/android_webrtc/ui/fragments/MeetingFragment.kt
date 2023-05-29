@@ -1,11 +1,22 @@
-package com.ihsan.webrtc
+package com.ihsan.android_webrtc.ui.fragments
 
-import android.content.Intent
 import android.os.Bundle
 import android.util.Log
-import androidx.appcompat.app.AppCompatActivity
+import android.view.LayoutInflater
+import android.view.View
+import android.view.ViewGroup
+import android.widget.Toast
 import androidx.core.view.isGone
-import com.ihsan.webrtc.databinding.ActivityMainBinding
+import androidx.fragment.app.Fragment
+import com.ihsan.android_webrtc.R
+import com.ihsan.android_webrtc.client.RTCClient
+import com.ihsan.android_webrtc.client.SignalingClient
+import com.ihsan.android_webrtc.client.SignalingClientListener
+import com.ihsan.android_webrtc.databinding.FragmentMeetingBinding
+import com.ihsan.android_webrtc.network.AppSdpObserver
+import com.ihsan.android_webrtc.network.PeerConnectionObserver
+import com.ihsan.android_webrtc.utils.Constants
+import com.ihsan.android_webrtc.utils.RTCAudioManager
 import org.webrtc.DataChannel
 import org.webrtc.IceCandidate
 import org.webrtc.MediaStream
@@ -14,13 +25,12 @@ import org.webrtc.RtpReceiver
 import org.webrtc.RtpTransceiver
 import org.webrtc.SessionDescription
 
-
-class RTCActivity : AppCompatActivity() {
-    private lateinit var binding: ActivityMainBinding
+class MeetingFragment : Fragment() {
+    private lateinit var binding: FragmentMeetingBinding
     private lateinit var rtcClient: RTCClient
     private lateinit var signallingClient: SignalingClient
 
-    private val audioManager by lazy { RTCAudioManager.create(this) }
+    private val audioManager by lazy { RTCAudioManager.create(requireContext()) }
 
     val TAG = "MainActivity"
 
@@ -37,15 +47,24 @@ class RTCActivity : AppCompatActivity() {
     private val sdpObserver = object : AppSdpObserver() {
     }
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        binding = ActivityMainBinding.inflate(layoutInflater)
-        setContentView(binding.root)
+    override fun onCreateView(
+        inflater: LayoutInflater, container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View {
+        // Inflate the layout for this fragment
+        binding = FragmentMeetingBinding.inflate(inflater, container, false)
+        return binding.root
+    }
 
-        if (intent.hasExtra("meetingID"))
-            meetingID = intent.getStringExtra("meetingID")!!
-        if (intent.hasExtra("isJoin"))
-            isJoin = intent.getBooleanExtra("isJoin", false)
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        arguments.let {
+            if (it != null) {
+                Toast.makeText(requireContext(), "$it", Toast.LENGTH_SHORT).show()
+                meetingID = it.getString("meetingID").toString()
+                isJoin = it.getBoolean("isJoin", false)
+            }
+        }
 
         //checkCameraAndAudioPermission()
         onCameraAndAudioPermissionGranted()
@@ -89,14 +108,22 @@ class RTCActivity : AppCompatActivity() {
             rtcClient.endCall(meetingID)
             binding.remoteView.isGone = false
             Constants.isCallEnded = true
-            finish()
-            startActivity(Intent(this, MainActivity::class.java))
+            //finish()
+            navigateToStartFragment()
         }
+    }
+
+    private fun navigateToStartFragment() {
+        val fragmentManager = requireActivity().supportFragmentManager
+        val transaction = fragmentManager.beginTransaction()
+        transaction.replace(R.id.fragment_container, StartFragment())
+        // Commit the transaction
+        transaction.commit()
     }
 
     private fun onCameraAndAudioPermissionGranted() {
         rtcClient = RTCClient(
-            application,
+            requireContext(),
             object : PeerConnectionObserver() {
                 override fun onIceCandidate(p0: IceCandidate?) {
                     super.onIceCandidate(p0)
@@ -174,8 +201,8 @@ class RTCActivity : AppCompatActivity() {
             if (!Constants.isCallEnded) {
                 Constants.isCallEnded = true
                 rtcClient.endCall(meetingID)
-                finish()
-                startActivity(Intent(this@RTCActivity, MainActivity::class.java))
+                //finish()
+                navigateToStartFragment()
             }
         }
     }

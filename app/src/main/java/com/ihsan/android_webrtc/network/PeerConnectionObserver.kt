@@ -1,4 +1,4 @@
-package com.ihsan.webrtc
+package com.ihsan.android_webrtc.network
 
 import org.webrtc.DataChannel
 import org.webrtc.IceCandidate

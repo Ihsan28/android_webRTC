@@ -1,4 +1,4 @@
-package com.ihsan.webrtc
+package com.ihsan.android_webrtc.utils
 
 import android.content.BroadcastReceiver
 import android.content.Context
@@ -9,6 +9,7 @@ import android.media.AudioDeviceInfo
 import android.media.AudioManager
 import android.preference.PreferenceManager
 import android.util.Log
+import com.ihsan.android_webrtc.R
 import org.webrtc.ThreadUtils
 import java.util.Collections
 

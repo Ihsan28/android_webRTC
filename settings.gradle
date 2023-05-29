@@ -12,5 +12,5 @@ dependencyResolutionManagement {
         mavenCentral()
     }
 }
-rootProject.name = "WebRTC"
+rootProject.name = "android_webRTC"
 include ':app'

@@ -1,4 +1,4 @@
-package com.ihsan.webrtc
+package com.ihsan.android_webrtc.client
 
 import org.webrtc.IceCandidate
 import org.webrtc.SessionDescription

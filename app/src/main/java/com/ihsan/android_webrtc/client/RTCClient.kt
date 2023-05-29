@@ -1,11 +1,11 @@
-package com.ihsan.webrtc
+package com.ihsan.android_webrtc.client
 
-import android.app.Application
 import android.content.Context
 import android.util.Log
 import android.widget.Toast
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
+import com.ihsan.android_webrtc.MainActivity
 import org.webrtc.AudioTrack
 import org.webrtc.Camera2Enumerator
 import org.webrtc.DefaultVideoDecoderFactory
@@ -22,7 +22,7 @@ import org.webrtc.SurfaceViewRenderer
 import org.webrtc.VideoTrack
 
 class RTCClient(
-    context: Application,
+    context: Context,
     observer: PeerConnection.Observer
 ) {
     companion object {
@@ -54,7 +54,7 @@ class RTCClient(
     private val localVideoSource by lazy { peerConnectionFactory.createVideoSource(false) }
     private val peerConnection by lazy { buildPeerConnection(observer) }
 
-    private fun initPeerConnectionFactory(context: Application) {
+    private fun initPeerConnectionFactory(context: Context) {
         val options = PeerConnectionFactory.InitializationOptions.builder(context)
             .setEnableInternalTracer(true)
             .setFieldTrials("WebRTC-H264HighProfile/Enabled/")
@@ -130,7 +130,7 @@ class RTCClient(
             peerConnection?.addTrack(localAudioTrack)
             peerConnection?.addTrack(localVideoTrack)
         } catch (e: Exception) {
-            Toast.makeText(RTCActivity(), "$e", Toast.LENGTH_SHORT).show()
+            Toast.makeText(MainActivity(), "$e", Toast.LENGTH_SHORT).show()
             Log.d(TAG, "startLocalVideoCapture: $e")
         }
     }
