@@ -43,7 +43,9 @@ class RTCClient(
     }
 
     private val iceServer = listOf(
-        PeerConnection.IceServer.builder("stun:stun.l.google.com:19302")
+        PeerConnection.IceServer.builder("stun:stun1.l.google.com:19302")
+            .createIceServer(),
+        PeerConnection.IceServer.builder("stun:stun2.l.google.com:19302")
             .createIceServer()
     )
 
@@ -65,7 +67,6 @@ class RTCClient(
     private fun buildPeerConnectionFactory(): PeerConnectionFactory {
         return PeerConnectionFactory
             .builder()
-            .setVideoDecoderFactory(DefaultVideoDecoderFactory(rootEglBase.eglBaseContext))
             .setVideoEncoderFactory(
                 DefaultVideoEncoderFactory(
                     rootEglBase.eglBaseContext,
@@ -73,6 +74,7 @@ class RTCClient(
                     true
                 )
             )
+            .setVideoDecoderFactory(DefaultVideoDecoderFactory(rootEglBase.eglBaseContext))
             .setOptions(PeerConnectionFactory.Options().apply {
                 disableEncryption = true
                 disableNetworkMonitor = true

@@ -159,6 +159,16 @@ class MeetingFragment : Fragment() {
 
                 override fun onAddTrack(p0: RtpReceiver?, p1: Array<out MediaStream>?) {
                     Log.e(TAG, "onAddTrack: $p0 \n $p1")
+                    //p1?.get(0)?.videoTracks?.get(0)?.addSink(binding.remoteView)
+                    //Toast.makeText(requireContext(), p1.toString(), Toast.LENGTH_SHORT).show()
+                    if (!p1.isNullOrEmpty()) {
+                        val videoTracks = p1[0].videoTracks
+                        Log.e(TAG, "onAddTrack: $videoTracks")
+                        if (!videoTracks.isNullOrEmpty()) {
+                            val videoTrack = videoTracks[1]
+                            videoTrack.addSink(binding.remoteView)
+                        }
+                    }
                 }
 
                 override fun onTrack(transceiver: RtpTransceiver?) {
