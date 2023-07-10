@@ -17,6 +17,7 @@ import com.ihsan.android_webrtc.R
 import com.ihsan.android_webrtc.databinding.FragmentStartBinding
 import com.ihsan.android_webrtc.utils.Constants
 
+private const val TAG = "StartFragment"
 class StartFragment : Fragment() {
     private lateinit var binding: FragmentStartBinding
     private val db = Firebase.firestore
@@ -65,6 +66,8 @@ class StartFragment : Fragment() {
                         Log.d("mainActivity", "onCreate: success")
                     }
                     .addOnFailureListener {
+                        Toast.makeText(requireContext(), it.toString(), Toast.LENGTH_SHORT).show()
+                        Log.d(TAG, "onViewCreated: ${it}")
                         meetingId.error = "Please enter new meeting ID"
                     }
             }
